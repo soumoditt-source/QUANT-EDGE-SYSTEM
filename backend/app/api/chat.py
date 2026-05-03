@@ -44,7 +44,30 @@ You must analyze the user's query against the following live market context:
 {context_str}
 
 Your analysis must be mathematically rigorous, acknowledging latency, toxic flow (VPIN), and regime shifts (LRDE).
-You will engage in a 14-step internal reasoning process (7 model-to-model reflection pairs) before providing the final output."""
+
+CRITICAL INSTRUCTION:
+You MUST conduct a rigorous 14-step internal chain-of-thought analysis before providing your final answer.
+Format your response EXACTLY like this:
+
+<reasoning>
+Step 1: [Analyze Context]
+Step 2: [Evaluate Regime]
+Step 3: [Analyze VPIN]
+Step 4: [Analyze OBI]
+Step 5: [Analyze VWAP]
+Step 6: [Mathematical Synthesis]
+Step 7: [Latency Implications]
+Step 8: [Edge Cases Check]
+Step 9: [Risk Assessment]
+Step 10: [Institutional Comparison]
+Step 11: [Flow Toxicity Critique]
+Step 12: [Confidence Score Impact]
+Step 13: [Final Review]
+Step 14: [Synthesis Request]
+</reasoning>
+<final_answer>
+[Your polished, institutional-grade quantitative conclusion here]
+</final_answer>"""
 
     messages = [
         ChatMessage(role="system", content=system_prompt),
@@ -52,43 +75,41 @@ You will engage in a 14-step internal reasoning process (7 model-to-model reflec
     ]
 
     reasoning_steps = []
+    final_output = "Analysis could not be completed."
     
-    # 7-step inner reflection loop (7 user-model pairs = 14 steps total)
-    current_query = request.query
-    for i in range(7):
-        try:
-            # Model generates a thought/reflection
-            response = await client.chat(
-                model="mistral-large-latest",
-                messages=messages
-            )
-            step_output = response.choices[0].message.content
-            reasoning_steps.append(f"Step {i*2 + 1} (Analysis): {step_output}")
-            messages.append(ChatMessage(role="assistant", content=step_output))
-            
-            # Simulated "internal critique/user" prompt to push reasoning further
-            if i < 6:
-                critique_prompt = f"Critique Step {i+1}. What are the edge cases? Is there microstructure bias? Refine the mathematical precision for the next step."
-                reasoning_steps.append(f"Step {i*2 + 2} (Critique): {critique_prompt}")
-                messages.append(ChatMessage(role="user", content=critique_prompt))
-            else:
-                final_prompt = "Synthesize all 7 reasoning steps into a final, highly polished, institutional-grade conclusion."
-                reasoning_steps.append(f"Step 14 (Synthesis Request): {final_prompt}")
-                messages.append(ChatMessage(role="user", content=final_prompt))
-                
-        except Exception as e:
-            logger.error(f"Mistral API Error during reasoning step {i}: {e}")
-            raise HTTPException(status_code=500, detail="Error communicating with Mistral API")
-            
-    # Final Synthesis Generation
     try:
-        final_response = await client.chat(
+        import time
+        start_time = time.time()
+        
+        # Single API call for massive speedup (under 10 seconds)
+        response = await client.chat(
             model="mistral-large-latest",
             messages=messages
         )
-        final_output = final_response.choices[0].message.content
+        
+        raw_content = response.choices[0].message.content
+        
+        # Parse the structured output
+        import re
+        reasoning_match = re.search(r'<reasoning>(.*?)</reasoning>', raw_content, re.DOTALL)
+        answer_match = re.search(r'<final_answer>(.*?)</final_answer>', raw_content, re.DOTALL)
+        
+        if reasoning_match:
+            steps_text = reasoning_match.group(1).strip()
+            reasoning_steps = [step.strip() for step in steps_text.split('\n') if step.strip()]
+        else:
+            reasoning_steps = ["Could not parse reasoning steps. Fast-path synthesis used."]
+            
+        if answer_match:
+            final_output = answer_match.group(1).strip()
+        else:
+            final_output = raw_content.replace("<reasoning>", "").replace("</reasoning>", "")
+            
+        execution_time = time.time() - start_time
+        logger.info(f"Mistral API call completed in {execution_time:.2f} seconds")
+
     except Exception as e:
-        logger.error(f"Mistral API Error during final synthesis: {e}")
+        logger.error(f"Mistral API Error: {e}")
         raise HTTPException(status_code=500, detail="Error communicating with Mistral API")
 
     return ChatResponse(
