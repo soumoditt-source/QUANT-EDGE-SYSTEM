@@ -1,33 +1,26 @@
-from .base import BaseSignal
+"""
+OBI Signal — now routes through C++ bridge.
+If C++ module is compiled: native speed.
+If not: transparent Python fallback.
+"""
+from ..core.cpp_bridge import OBIEngine
 from ..core.events import OrderBookEvent, TickEvent
-import numpy as np
 
-class OBISignal(BaseSignal):
+
+class OBISignal:
+    """Thin adapter over OBIEngine (C++ or Python) that matches the original interface."""
+
     def __init__(self, depth: int = 5, ema_span: int = 10):
-        super().__init__("OBI")
-        self.depth = depth
-        self.ema_span = ema_span
-        self.alpha = 2.0 / (self.ema_span + 1.0)
-        self.current_ema = 0.0
-        self.initialized = False
+        self._engine = OBIEngine(depth=depth, ema_span=ema_span)
 
     def update_tick(self, event: TickEvent) -> float:
-        return self.current_ema
+        return self._engine.current_value
 
     def update_book(self, event: OrderBookEvent) -> float:
-        bid_vol = sum(q for p, q in event.bids[:self.depth])
-        ask_vol = sum(q for p, q in event.asks[:self.depth])
-        
-        total_vol = bid_vol + ask_vol
-        if total_vol == 0:
-            return self.current_ema
-            
-        obi = (bid_vol - ask_vol) / total_vol
-        
-        if not self.initialized:
-            self.current_ema = obi
-            self.initialized = True
-        else:
-            self.current_ema = self.alpha * obi + (1 - self.alpha) * self.current_ema
-            
-        return max(-1.0, min(1.0, self.current_ema))
+        bids = [(p, q) for p, q in event.bids]
+        asks = [(p, q) for p, q in event.asks]
+        return self._engine.update_book(bids, asks)
+
+    @property
+    def current_ema(self) -> float:
+        return self._engine.current_value

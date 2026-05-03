@@ -1,48 +1,27 @@
-from .base import BaseSignal
-from ..core.events import OrderBookEvent, TickEvent
-from collections import deque
-import numpy as np
+"""
+VPIN Signal — now routes through C++ bridge.
+If C++ module is compiled: native speed.
+If not: transparent Python fallback.
+"""
+from ..core.cpp_bridge import VPINEngine
+from ..core.events import TickEvent, OrderBookEvent
 
-class VPINSignal(BaseSignal):
+
+class VPINSignal:
+    """Thin adapter over VPINEngine (C++ or Python) that matches the original interface."""
+
     def __init__(self, bucket_volume: float = 10.0, num_buckets: int = 50):
-        super().__init__("VPIN")
-        self.bucket_volume = bucket_volume
-        self.num_buckets = num_buckets
-        
-        self.buy_volume = 0.0
-        self.sell_volume = 0.0
-        self.current_bucket_vol = 0.0
-        
-        self.buckets = deque(maxlen=num_buckets)
-        self.current_signal = 0.0
-        
-        self.baseline_vpin = 0.5
+        self._engine = VPINEngine(bucket_volume=bucket_volume, num_buckets=num_buckets)
 
     def update_tick(self, event: TickEvent) -> float:
-        if event.is_buyer_maker:
-            # Maker was buyer -> Taker was seller -> Sell volume
-            self.sell_volume += event.volume
-        else:
-            self.buy_volume += event.volume
-            
-        self.current_bucket_vol += event.volume
-        
-        if self.current_bucket_vol >= self.bucket_volume:
-            imbalance = abs(self.buy_volume - self.sell_volume)
-            self.buckets.append(imbalance)
-            
-            # Reset bucket
-            self.buy_volume = 0.0
-            self.sell_volume = 0.0
-            self.current_bucket_vol = 0.0
-            
-            # Calculate VPIN
-            if len(self.buckets) == self.num_buckets:
-                vpin = np.sum(self.buckets) / (self.num_buckets * self.bucket_volume)
-                # Normalize VPIN to a signal (-1 for toxic flow)
-                self.current_signal = -np.clip((vpin - self.baseline_vpin) / 0.2, -1.0, 1.0)
-                
-        return self.current_signal
+        return self._engine.update_tick(
+            volume=event.volume,
+            is_buyer_maker=event.is_buyer_maker
+        )
 
     def update_book(self, event: OrderBookEvent) -> float:
-        return self.current_signal
+        return self._engine.current_value
+
+    @property
+    def current_signal(self) -> float:
+        return self._engine.current_value
