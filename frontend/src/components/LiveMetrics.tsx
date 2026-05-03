@@ -1,44 +1,53 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
-import { Wifi, WifiOff } from 'lucide-react';
 
 export const LiveMetrics: React.FC = () => {
-  const isConnected = useStore(state => state.isConnected);
-  const bids = useStore(state => state.bids);
-  const asks = useStore(state => state.asks);
-  
-  const bestBid = bids.length > 0 ? bids[0].price : 0;
-  const bestAsk = asks.length > 0 ? asks[0].price : 0;
-  const spread = bestAsk - bestBid;
-  
+  const connected = useStore(s => s.isConnected);
+  const bids      = useStore(s => s.bids);
+  const asks      = useStore(s => s.asks);
+  const signals   = useStore(s => s.signals);
+
+  const bestBid = bids[0]?.price ?? 0;
+  const bestAsk = asks[0]?.price ?? 0;
+  const spread  = bestAsk - bestBid;
+  const mid     = bestBid > 0 ? (bestBid + bestAsk) / 2 : 0;
+
+  const metrics = [
+    { label: 'Bid',    value: bestBid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), color: '#10D994' },
+    { label: 'Ask',    value: bestAsk.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), color: '#FF4466' },
+    { label: 'Spread', value: spread.toFixed(2),                                                                        color: '#94A3B8' },
+    { label: 'OBI',    value: signals.obi >= 0 ? `+${signals.obi.toFixed(3)}` : signals.obi.toFixed(3),               color: signals.obi > 0 ? '#10D994' : '#FF4466' },
+    { label: 'VPIN',   value: signals.vpin.toFixed(3),                                                                 color: signals.vpin < -0.3 ? '#FF4466' : '#94A3B8' },
+  ];
+
   return (
-    <div className="bg-surface rounded-xl p-6 border border-gray-800 shadow-2xl flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        {isConnected ? (
-          <div className="flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/30 rounded-full text-accent text-sm font-bold">
-            <Wifi className="w-4 h-4 animate-pulse" /> LIVE STREAM
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 px-3 py-1 bg-toxic/10 border border-toxic/30 rounded-full text-toxic text-sm font-bold">
-            <WifiOff className="w-4 h-4" /> DISCONNECTED
-          </div>
-        )}
+    <div className="flex items-center gap-6">
+      {/* Connection */}
+      <div className="flex items-center gap-1.5">
+        <span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{
+            background: connected ? '#10D994' : '#EF4444',
+            boxShadow: `0 0 6px ${connected ? '#10D994' : '#EF4444'}`,
+            animation: connected ? 'pulse 2s infinite' : 'none',
+          }}
+        />
+        <span className="text-[9px] font-bold tracking-widest uppercase"
+          style={{ color: connected ? '#10D994' : '#EF4444' }}>
+          {connected ? 'BTC/USDT LIVE' : 'OFFLINE'}
+        </span>
       </div>
 
-      <div className="flex gap-12">
-        <div>
-          <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">Best Bid</div>
-          <div className="text-xl font-mono font-bold text-accent">{bestBid.toFixed(2)}</div>
+      {/* Separator */}
+      <div className="h-4 w-px bg-slate-800" />
+
+      {/* Metric chips */}
+      {metrics.map(m => (
+        <div key={m.label} className="flex flex-col items-center">
+          <span className="text-[8px] text-slate-600 uppercase tracking-widest">{m.label}</span>
+          <span className="text-[12px] font-bold font-mono leading-tight" style={{ color: m.color }}>{m.value}</span>
         </div>
-        <div>
-          <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">Best Ask</div>
-          <div className="text-xl font-mono font-bold text-toxic">{bestAsk.toFixed(2)}</div>
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">Spread</div>
-          <div className="text-xl font-mono font-bold text-gray-200">{spread.toFixed(2)}</div>
-        </div>
-      </div>
+      ))}
     </div>
   );
 };

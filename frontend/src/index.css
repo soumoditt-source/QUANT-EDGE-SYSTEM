@@ -1,37 +1,59 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0B0D17;
-  --color-surface: #1A1D2D;
+  --color-background: #020617;
+  --color-surface: #060E1E;
   --color-primary: #3B82F6;
-  --color-secondary: #8B5CF6;
-  --color-accent: #10B981;
-  --color-toxic: #EF4444;
+  --color-secondary: #7C3AED;
+  --color-accent:  #10D994;
+  --color-toxic:   #EF4444;
   --color-meanrev: #3B82F6;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
 @layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;          /* ✅ zero scroll on outer container */
+  }
+
   body {
+    font-family: 'Inter', system-ui, sans-serif;
     background-color: var(--color-background);
-    color: white;
+    color: #E2E8F0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow: hidden;
+    text-rendering: optimizeLegibility;
   }
 }
 
-/* Custom scrollbar for deep dark theme */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ── Slim scrollbar (shows only inside panels) ─── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1E293B transparent;
 }
-::-webkit-scrollbar-track {
-  background: #0B0D17; 
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #1E293B; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+/* ── Utility animations ─────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
 }
-::-webkit-scrollbar-thumb {
-  background: #1A1D2D; 
-  border-radius: 4px;
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #2a2d3d; 
-}
+
+.animate-float { animation: float 3s ease-in-out infinite; }
