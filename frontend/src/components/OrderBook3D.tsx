@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -48,7 +48,7 @@ function ParticleField({ regime }: { regime: number }) {
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" array={positions} count={COUNT} itemSize={3} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} count={COUNT} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial size={0.1} color={cfg.glow} transparent opacity={0.2} sizeAttenuation depthWrite={false} />
     </points>

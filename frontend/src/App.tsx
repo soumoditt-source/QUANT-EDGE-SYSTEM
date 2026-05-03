@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useStore } from './store/useStore';
 import { OrderBook3D } from './components/OrderBook3D';
 import { ExplainabilityPanel } from './components/ExplainabilityPanel';

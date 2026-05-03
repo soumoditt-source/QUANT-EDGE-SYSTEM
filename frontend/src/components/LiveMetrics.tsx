@@ -10,7 +10,6 @@ export const LiveMetrics: React.FC = () => {
   const bestBid = bids[0]?.price ?? 0;
   const bestAsk = asks[0]?.price ?? 0;
   const spread  = bestAsk - bestBid;
-  const mid     = bestBid > 0 ? (bestBid + bestAsk) / 2 : 0;
 
   const metrics = [
     { label: 'Bid',    value: bestBid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), color: '#10D994' },

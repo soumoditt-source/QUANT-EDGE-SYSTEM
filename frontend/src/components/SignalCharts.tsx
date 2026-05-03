@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import {
   AreaChart,
@@ -54,7 +54,6 @@ const SignalRow = ({
   color: string;
   description: string;
 }) => {
-  const pct = ((value + 1) / 2) * 100; // map [-1,1] → [0,100]%
   const isPositive = value >= 0;
 
   return (
