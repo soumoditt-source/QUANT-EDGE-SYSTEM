@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 import logging
-from mistralai.client import MistralClient
+from mistralai.async_client import MistralAsyncClient
 from mistralai.models.chat_completion import ChatMessage
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ async def chat_with_quant_ai(request: ChatRequest):
     if not MISTRAL_API_KEY:
         raise HTTPException(status_code=500, detail="Mistral API key not configured")
         
-    client = MistralClient(api_key=MISTRAL_API_KEY)
+    client = MistralAsyncClient(api_key=MISTRAL_API_KEY)
     
     # Extract Context
     context_str = (
@@ -58,7 +58,7 @@ You will engage in a 14-step internal reasoning process (7 model-to-model reflec
     for i in range(7):
         try:
             # Model generates a thought/reflection
-            response = client.chat(
+            response = await client.chat(
                 model="mistral-large-latest",
                 messages=messages
             )
@@ -82,7 +82,7 @@ You will engage in a 14-step internal reasoning process (7 model-to-model reflec
             
     # Final Synthesis Generation
     try:
-        final_response = client.chat(
+        final_response = await client.chat(
             model="mistral-large-latest",
             messages=messages
         )
@@ -95,3 +95,4 @@ You will engage in a 14-step internal reasoning process (7 model-to-model reflec
         response=final_output,
         reasoning_steps=reasoning_steps
     )
+

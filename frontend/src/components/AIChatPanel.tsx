@@ -141,7 +141,28 @@ export function AIChatPanel() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-3 bg-slate-800/80 border-t border-slate-700/50">
+      {messages.length === 0 && (
+        <div className="px-4 pb-2 flex flex-wrap gap-2">
+          {["Explain the current VPIN toxicity", "What is the Order Book Imbalance telling us?", "Why is the market in the current regime?"].map((suggestion, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setInput(suggestion);
+                // We use a small timeout to allow state to update before submit
+                setTimeout(() => {
+                  const form = document.getElementById('chat-form');
+                  if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                }, 50);
+              }}
+              className="text-xs bg-slate-800 hover:bg-indigo-900/50 text-slate-300 border border-slate-700 hover:border-indigo-500/50 rounded-full px-3 py-1.5 transition-colors"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <form id="chat-form" onSubmit={handleSubmit} className="p-3 bg-slate-800/80 border-t border-slate-700/50">
         <div className="relative">
           <input
             type="text"
