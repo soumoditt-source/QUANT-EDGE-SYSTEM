@@ -97,9 +97,7 @@ function DepthBars({ bids, asks }: { bids: any[]; asks: any[] }) {
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
-      {/* ✅ FIX: vertexColors={true} is REQUIRED for instanceColor to work */}
       <meshStandardMaterial
-        vertexColors
         toneMapped={false}
         roughness={0.15}
         metalness={0.75}
