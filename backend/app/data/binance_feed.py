@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class BinanceFeed:
     def __init__(self, symbol: str = "btcusdt"):
         self.symbol = symbol.lower()
-        self.uri = f"wss://stream.binance.com:9443/ws"
+        self.uri = f"wss://stream.binance.us:9443/ws"
         self.streams = [
             f"{self.symbol}@aggTrade",
             f"{self.symbol}@depth20@100ms"
