@@ -3,8 +3,7 @@ from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 import logging
-from mistralai.async_client import MistralAsyncClient
-from mistralai.models.chat_completion import ChatMessage
+from mistralai import Mistral
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,7 @@ async def chat_with_quant_ai(request: ChatRequest):
     if not MISTRAL_API_KEY:
         raise HTTPException(status_code=500, detail="Mistral API key not configured")
         
-    client = MistralAsyncClient(api_key=MISTRAL_API_KEY)
+    client = Mistral(api_key=MISTRAL_API_KEY)
     
     # Extract Context
     context_str = (
@@ -70,8 +69,8 @@ Step 14: [Synthesis Request]
 </final_answer>"""
 
     messages = [
-        ChatMessage(role="system", content=system_prompt),
-        ChatMessage(role="user", content=f"Please provide an institutional-grade quantitative analysis on this query: {request.query}")
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"Please provide an institutional-grade quantitative analysis on this query: {request.query}"}
     ]
 
     reasoning_steps = []
@@ -81,8 +80,7 @@ Step 14: [Synthesis Request]
         import time
         start_time = time.time()
         
-        # Single API call for massive speedup (under 10 seconds)
-        response = await client.chat(
+        response = await client.chat.complete_async(
             model="mistral-large-latest",
             messages=messages
         )

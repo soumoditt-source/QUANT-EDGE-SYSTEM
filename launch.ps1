@@ -21,7 +21,7 @@ $BackendProcess = Start-Process py -ArgumentList "-3.11 -m uvicorn app.api.main:
 
 # ─── Frontend Startup ─────────────────────────────────────────────────────────
 Write-Host "Starting Frontend on port $FRONTEND_PORT..." -ForegroundColor Green
-$FrontendProcess = Start-Process npm -ArgumentList "run dev" -WorkingDirectory "frontend" -PassThru -NoNewWindow
+$FrontendProcess = Start-Process npm.cmd -ArgumentList "run dev" -WorkingDirectory "frontend" -PassThru -NoNewWindow
 
 Write-Host "`n✅ QuantEdge is now running!" -ForegroundColor Green
 Write-Host "👉 Frontend: http://localhost:$FRONTEND_PORT" -ForegroundColor White
