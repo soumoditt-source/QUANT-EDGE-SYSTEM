@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 import logging
-from mistralai import Mistral
+from mistralai.client import Mistral
 
 logger = logging.getLogger(__name__)
 
