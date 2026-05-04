@@ -2,6 +2,7 @@ services:
   - type: web
     name: quantedge-backend
     env: python
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt && cd ../cpp && pip install pybind11 && python setup.py build_ext --inplace
     startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
