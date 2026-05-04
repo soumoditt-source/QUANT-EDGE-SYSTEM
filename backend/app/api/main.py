@@ -61,8 +61,16 @@ def broadcast_data(event):
             }
         }
         
-        for client in clients:
-            asyncio.create_task(client.send_text(json.dumps(message)))
+        # Use a copy of the clients set to avoid "Set changed size during iteration"
+        active_clients = list(clients)
+        for client in active_clients:
+            try:
+                # We create a task to send the message without blocking the broadcast loop.
+                # However, we should be careful about not overwhelming the event loop.
+                asyncio.create_task(client.send_text(json.dumps(message)))
+            except Exception as e:
+                logger.error(f"Failed to send message to client: {e}")
+                clients.discard(client)
             
     elif hasattr(event, 'price'):
         # It's a TickEvent
@@ -74,18 +82,25 @@ feed.subscribe(broadcast_data)
 
 @app.on_event("startup")
 async def startup_event():
+    logger.info("Starting Binance Feed...")
     asyncio.create_task(feed.run())
 
 @app.on_event("shutdown")
 def shutdown_event():
+    logger.info("Shutting down Binance Feed...")
     feed.stop()
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     clients.add(websocket)
+    logger.info(f"New client connected. Total clients: {len(clients)}")
     try:
         while True:
+            # We must keep the connection open by receiving (heartbeats/messages)
             await websocket.receive_text()
-    except Exception:
-        clients.remove(websocket)
+    except Exception as e:
+        logger.info(f"Client disconnected: {e}")
+    finally:
+        clients.discard(websocket)
+        logger.info(f"Client removed. Remaining clients: {len(clients)}")

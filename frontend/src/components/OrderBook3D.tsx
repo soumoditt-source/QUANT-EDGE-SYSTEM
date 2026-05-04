@@ -95,12 +95,12 @@ function DepthBars({ bids, asks }: { bids: any[]; asks: any[] }) {
   if (count === 0) return null;
 
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, count]}>
+    <instancedMesh ref={ref} args={[undefined, undefined, count]} castShadow receiveShadow>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial
         toneMapped={false}
-        roughness={0.15}
-        metalness={0.75}
+        roughness={0.2}
+        metalness={0.4}
         emissive="#000000"
       />
     </instancedMesh>
@@ -161,7 +161,7 @@ function Lights({ regime }: { regime: number }) {
 
   return (
     <>
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.6} />
       <spotLight ref={key} position={[-12, 18, 8]} intensity={1.2} color={cfg.primary} penumbra={0.9} castShadow />
       <pointLight ref={fill} position={[12, 6, -4]} intensity={0.5} color={cfg.primary} distance={35} />
       <pointLight position={[0, -3, 10]} intensity={0.3} color="#7C3AED" />
